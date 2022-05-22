@@ -44,10 +44,8 @@ namespace MLLab1
             Minimum = GetMinimum();
 
             ClasterI = Clasters.First(x => x.Index == Math.Min(Minimum.I, Minimum.J));
-            ClasterI.ContainsMinimum = true;
 
             ClasterJ = Clasters.First(x => x.Index == Math.Max(Minimum.I, Minimum.J));
-            ClasterJ.ContainsMinimum = true;
         }
 
         public void FindClasters(Method method)

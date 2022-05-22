@@ -14,13 +14,10 @@ namespace MLLab1
 
         public string Name { get; set; }
 
-        public bool ContainsMinimum { get; set; }
-
         public Claster Clone()
         {
             return new Claster 
-            { 
-                ContainsMinimum = ContainsMinimum, 
+            {
                 Dimension = Dimension, 
                 Index = Index,
                 Name = Name 
