@@ -33,6 +33,13 @@ namespace MLLab1
             stringBuilder = dataExport.ExportToHtml(GetTransformationHistory(), stringBuilder, false);
             stringBuilder = dataExport.ExportAsImageToHtml(_context, stringBuilder, false);
 
+            var last = _matrices.Last();
+
+            stringBuilder = dataExport.ExportAsImageToHtml(
+                GetTransformationHistory()
+                .Append((last.Clasters[0].Name, last.Clasters[1].Name, last.Distances[0,1])).ToList(), 
+                last.Clasters[0].Name+","+last.Clasters[1].Name, stringBuilder, false);
+
             File.WriteAllText(fileName, stringBuilder.ToString());
         }
 
