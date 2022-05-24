@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 
 namespace MLLab1
@@ -59,6 +60,26 @@ namespace MLLab1
             stringBuilder.AppendLine("</tbody>");
 
             stringBuilder.AppendLine("</table>");
+
+            return stringBuilder;
+        }
+
+        public StringBuilder ExportToHtml(List<(string NameI, string NameJ, double Value)> history, StringBuilder stringBuilder = null, bool addStyles = true)
+        {
+            if (stringBuilder is null)
+                stringBuilder = new StringBuilder();
+
+            if (addStyles)
+                stringBuilder.AppendLine(_styles);
+
+            stringBuilder.AppendLine("<ul>");
+
+            foreach(var item in history)
+            {
+                stringBuilder.AppendLine($"<li>Left column: {item.NameI}; Right column: {item.NameJ}; Minimum: {item.Value}</li>");
+            }
+
+            stringBuilder.AppendLine("</ul><hr>");
 
             return stringBuilder;
         }
@@ -126,7 +147,61 @@ namespace MLLab1
                 stringBuilder.AppendLine("</tr>");
             }
 
-            stringBuilder.AppendLine("</table><br>");
+            stringBuilder.AppendLine("</table><hr>");
+
+            return stringBuilder;
+        }
+
+        public StringBuilder ExportAsImageToHtml(DataContext dataContext, StringBuilder stringBuilder = null, bool addStyles = true)
+        {
+            int w = 1000, h = 700;
+            int wShift = 80, hShift = 80;
+
+            Bitmap bitmap = new Bitmap(w,h);
+
+            Graphics graphics = Graphics.FromImage(bitmap);
+
+            graphics.Clear(Color.White);
+
+            Pen pen = new Pen(Color.Black);
+            Brush brush = new SolidBrush(Color.Black);
+            Font font = new Font("arial", 10);
+
+            //--------------XY
+            graphics.DrawLine(pen, 0 + wShift, 0 + hShift, w - wShift, 0 + hShift);
+            graphics.DrawLine(pen, 0 + wShift, 0 + hShift, 0 + wShift, h+hShift);
+
+            int length = dataContext.Columns.Length;
+            int lenBetween = (w - 2 * wShift) / length;
+            for (int i = 0; i < length; i++)
+            {
+                graphics.FillEllipse(brush, wShift + i * lenBetween, hShift, 4, 4);
+                graphics.DrawString(dataContext.Columns[i], font, brush, wShift + i * lenBetween, hShift);
+            }
+            //--------------XY
+
+            var lines = dataContext.Data.Select(x => x.Values.Select((y,i) => new Point(i * lenBetween + wShift, (int)y)).ToArray()).ToList();
+
+            int max = lines.Max(x => x.Max(x => x.Y));
+            double lenBetweenH = (double)(h - 2 * hShift) / max;
+
+            lines = lines.Select(x => x.Select(x => { x.Y = (int)(x.Y* lenBetweenH); return x; }).ToArray()).ToList();
+
+            
+            foreach (var item in lines)
+            {
+                Random random = new Random();
+                Color randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+                graphics.DrawLines(new Pen(randomColor), item);
+            }
+
+            graphics.Save();
+
+            var stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Jpeg);
+            byte[] imageArray = stream.ToArray();
+            string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+            stringBuilder.AppendLine($"<img src='data:image/png;base64, {base64ImageRepresentation}'><hr>");
 
             return stringBuilder;
         }

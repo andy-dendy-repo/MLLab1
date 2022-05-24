@@ -7,6 +7,13 @@ namespace MLLab1
         private DataContext _context;
         private List<DistanceMatrix> _matrices = new List<DistanceMatrix>();
 
+        public List<(string NameI, string NameJ, double Value)> GetTransformationHistory()
+        {
+            return _matrices.Where(x => x.Minimum != null)
+                .Select(x => (x.ClasterI.Name, x.ClasterJ.Name, x.Minimum.Value))
+                .ToList();
+        }
+
         public void ImportData(string fileName)
         {
             var contextImport = new DataContextImport();
@@ -22,6 +29,9 @@ namespace MLLab1
 
             foreach (var matrix in _matrices)
                 stringBuilder = dataExport.ExportToHtml(matrix, stringBuilder, false);
+
+            stringBuilder = dataExport.ExportToHtml(GetTransformationHistory(), stringBuilder, false);
+            stringBuilder = dataExport.ExportAsImageToHtml(_context, stringBuilder, false);
 
             File.WriteAllText(fileName, stringBuilder.ToString());
         }
